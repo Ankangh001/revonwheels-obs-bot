@@ -14,6 +14,7 @@ class SetupOBS:
         self.settings={};self.active=False;self.plugin_active=False;self.next_id=1
         self.device_list=[{'itemName':'HP Wide Vision HD Camera','itemValue':'webcam','itemEnabled':True},{'itemName':'UGREEN Capture','itemValue':'capture','itemEnabled':True}]
         self.owned_active=False
+        self.core_active={};self.replay_available=True
         self.video={'baseWidth':1920,'baseHeight':1080,'outputWidth':1280,'outputHeight':720,'fpsNumerator':60,'fpsDenominator':1}
         self.resolutions=['1920x1080','1280x720'];self.intervals=[166666,333333]
     def key(self,d):return (d.get('canvasUuid','main'),d.get('sceneName'))
@@ -24,6 +25,9 @@ class SetupOBS:
         if k=='GetInputList':return {'inputs':list(self.inputs.values())}
         if k=='GetSpecialInputs':return {}
         if k=='GetStreamStatus':return {'outputActive':self.active}
+        if k in ('GetRecordStatus','GetVirtualCamStatus','GetReplayBufferStatus'):
+            if k=='GetReplayBufferStatus' and not self.replay_available:raise ObsError('GetReplayBufferStatus: Replay buffer is not available.')
+            return {'outputActive':self.core_active.get(k,False)}
         if k=='GetOutputList':return {'outputs':[]}
         if k=='GetSceneList':return {'scenes':[{'sceneName':name} for canvas,name in self.scenes if canvas==d.get('canvasUuid','main')]}
         if k=='CreateScene':self.scenes[self.key(d)]=[];return {}
@@ -85,6 +89,25 @@ class SetupTests(unittest.TestCase):
             with self.assertRaises(ObsError):self.s.build('pc')
             self.assertEqual(len(self.o.scenes),0)
             setattr(self.o,target,False)
+    def test_recording_virtual_camera_and_replay_each_block_setup(self):
+        for request in ('GetRecordStatus','GetVirtualCamStatus','GetReplayBufferStatus'):
+            self.o.core_active={request:True}
+            with self.assertRaises(ObsError):self.s.build('ps5')
+            self.assertEqual(len(self.o.scenes),0)
+    def test_unavailable_replay_is_not_running(self):
+        self.o.replay_available=False
+        self.s.offline_only()
+    def test_setup_does_not_use_stalling_output_list(self):
+        original=self.o.call
+        def call(k,**d):
+            if k=='GetOutputList':raise AssertionError('This API stalled in OBS 33.')
+            return original(k,**d)
+        self.o.call=call
+        self.s.build('ps5')
+    def test_unknown_core_output_status_fails_closed(self):
+        original=self.o.call
+        self.o.call=lambda k,**d: {} if k=='GetVirtualCamStatus' else original(k,**d)
+        with self.assertRaises(ObsError):self.s.offline_only()
     def test_live_staging_only_adds_unused_scenes_and_sources(self):
         self.o.active=True;self.o.plugin_active=True
         self.s.build('ps5',stage=True)
@@ -163,6 +186,16 @@ class SetupTests(unittest.TestCase):
         self.assertNotIn('ROW - Game Audio',self.o.inputs)
         self.assertNotIn('ROW - Microphone',self.o.inputs)
         self.assertEqual(self.config['microphone'],'Mic/Aux')
+
+    def test_capture_matches_audio_interface_without_choosing_microphone(self):
+        original=self.o.call
+        def audio(k,**d):
+            if k=='GetInputPropertiesListPropertyItems' and d['propertyName']=='audio_device_id':
+                return {'propertyItems':[{'itemName':'Microphone Array','itemValue':'mic'},{'itemName':'Digital Audio Interface (UGREEN Capture)','itemValue':'card-audio'}]}
+            return original(k,**d)
+        self.o.call=audio;self.s.automatic('ps5')
+        self.assertTrue(self.o.settings[PS5_INPUT]['use_custom_audio_device'])
+        self.assertEqual(self.o.settings[PS5_INPUT]['audio_device_id'],'card-audio')
 
     def test_auto_live_does_not_mutate(self):
         self.o.plugin_active=True

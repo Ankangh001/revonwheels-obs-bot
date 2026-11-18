@@ -8,6 +8,8 @@ The desktop preview is **RevOnWheels.exe**. Download it from this repository's R
 
 The app has five tabs, with a neon pink/cyan/plum sunset theme, an original tropical background and a generated RevOnWheels logo:
 
+New users with no saved local configuration start on the prerequisite guide. Open OBS detects an existing OBS process to avoid launching duplicate instances. A native Windows administrator prompt must be approved by the user when required for installation/uninstallation.
+
 - **Stream controls:** Starting Soon, Gameplay, BRB, Safe Screen/resume, microphone/camera controls, quality selection, replay highlights and Go Live/Stop buttons. Go Live asks for a choice before requesting the configured outputs. Launching or closing the app does not start/stop streams.
 - **Prerequisite guide:** eight steps from OBS installation through platform checks. Select steps on the left, read the instructions, use the relevant action buttons, and mark completion. Progress stays local and is user-reported, not proof of readiness.
 - **Artwork & music:** choose the included theme or select your own local banner images/music, preview artwork, switch banner music/countdown on or off, and apply changes with outputs stopped. See media details below.
@@ -209,7 +211,7 @@ Git ignores `config.json`, device IDs, ownership/safe-state manifests, backups, 
 python -m unittest -v
 ```
 
-53 tests cover authenticated WebSocket framing, scene/canvas routing, zero-source mock construction, repeat builds, device ambiguity, safe-screen behaviour, official-download selection, quality fallback/rollback, desktop status, local import, Go Live confirmation, custom media copying/validation and disabling/re-enabling media in both formats. These mocks cannot prove a working PS5 HDMI signal or public platform reception. The standalone executable was also launched on the development machine, connected to OBS, imported existing settings, and verified all eight scenes without starting a broadcast.
+62 tests cover authenticated WebSocket framing, scene/canvas routing, zero-source mock construction, repeat builds, device ambiguity, safe-screen behaviour, official-download selection, quality fallback/rollback, desktop status, local import, Go Live confirmation, custom media copying/validation, media toggles, core output guards and duplicate OBS launch prevention. These mocks cannot prove a working PS5 HDMI signal or public platform reception. The standalone executable was also launched on the development machine, connected to OBS, imported existing settings, and verified all eight scenes without starting a broadcast. See [clean-install test status](docs/CLEAN-INSTALL-TEST.md) for the separate uninstall/reinstall attempt and outstanding Windows approval.
 
 Live validation on 18 November 2026: backed up the existing collection, cleared both canvas scene lists and all inputs, verified zero remaining inputs and scene items, then ran `setup auto ps5`. The bot rebuilt all eight scenes from scratch. Landscape/portrait artwork, countdown and safety cards were visually checked; `safe`, `resume` and `prepare` passed. All stream outputs remained stopped, and absent capture hardware was correctly reported as pending. This proves the empty-scene/source workflow with an existing Aitum canvas and configured OBS; a fresh installation and real HDMI signal remain unverified. Back up your own collection before attempting a destructive reset.
 

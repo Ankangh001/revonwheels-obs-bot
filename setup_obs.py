@@ -128,13 +128,21 @@ class Setup:
         (self.root/'config.json').write_text(json.dumps(self.config,indent=2))
 
     def offline_only(self):
-        # Fail closed: plugin outputs may still run while the main stream is stopped.
-        main=self.o.call('GetStreamStatus')['outputActive']
-        native=self.o.call('GetOutputList').get('outputs',[])
-        active=[x.get('outputName','unknown') for x in native if x.get('outputActive')]
+        # OBS 33 can stall GetOutputList. Query each core output independently.
+        active=[]
+        for request,label in (('GetStreamStatus','main stream'),('GetRecordStatus','recording'),('GetVirtualCamStatus','virtual camera'),('GetReplayBufferStatus','replay buffer')):
+            try:state=self.o.call(request).get('outputActive')
+            except ObsError as exc:
+                if request=='GetReplayBufferStatus' and 'Replay buffer is not available' in str(exc):continue
+                raise
+            if not isinstance(state,bool):raise ObsError('Could not verify '+label+' activity; setup stopped.')
+            if state:active.append(label)
         extra=self.o.vendor('get_outputs').get('outputs',[])
-        active.extend(x.get('name','Aitum output') for x in extra if any(x.get(k) is True for k in ('active','outputActive','streaming','recording')))
-        if main or active:raise ObsError('Setup changes require outputs stopped. Use setup plan while live. Active: '+(', '.join(active) or 'main stream'))
+        for output in extra:
+            flags=[output[k] for k in ('active','outputActive','streaming','recording') if isinstance(output.get(k),bool)]
+            if not flags:raise ObsError('Aitum output activity is unavailable; setup stopped.')
+            if any(flags):active.append(output.get('name','Aitum output'))
+        if active:raise ObsError('Setup changes require outputs stopped. Use setup plan while live. Active: '+', '.join(active))
 
     def ref(self,name,vertical=False):
         r={'sceneName':name}
@@ -183,7 +191,7 @@ class Setup:
             'positionX':0.,'positionY':0.,'rotation':0.,'alignment':5,
             'cropTop':0,'cropBottom':0,'cropLeft':0,'cropRight':0,
             'boundsType':'OBS_BOUNDS_SCALE_OUTER' if crop else 'OBS_BOUNDS_SCALE_INNER',
-            'boundsAlignment':0,'boundsWidth':float(w),'boundsHeight':float(h),'boundsCrop':bool(crop)})
+            'boundsAlignment':0,'boundsWidth':float(w),'boundsHeight':float(h),'cropToBounds':bool(crop)})
 
     def top(self,ref,item):
         n=len(self.o.call('GetSceneItemList',**ref)['sceneItems'])
@@ -355,6 +363,10 @@ class Setup:
         if any(x in d['itemName'].lower() for x in ('webcam','wide vision','integrated camera','facetime','virtual camera')):raise ObsError('That looks like a webcam or virtual camera. Select the HDMI capture card.')
         ref=self.ref(SCENES['gameplay'][0])
         self.input(ref,PS5_INPUT,'dshow_input',{'video_device_id':d['itemValue'],'active':True,'audio_output_mode':0,'use_custom_audio_device':False})
+        audio_items=self.o.call('GetInputPropertiesListPropertyItems',**self.input_ref(PS5_INPUT),propertyName='audio_device_id').get('propertyItems',[])
+        audio=[x for x in audio_items if x.get('itemEnabled',True) and x.get('itemValue') and ('('+d['itemName'].casefold()+')') in x.get('itemName','').casefold()]
+        if len(audio)==1:
+            self.o.call('SetInputSettings',**self.input_ref(PS5_INPUT),inputSettings={'use_custom_audio_device':True,'audio_device_id':audio[0]['itemValue']},overlay=True)
         for vertical in (False,True):
             ref=self.ref(SCENES['gameplay'][int(vertical)],vertical)
             item=self.item(ref,PS5_INPUT)

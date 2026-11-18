@@ -7,6 +7,10 @@ import media_library
 import test_setup
 
 class MediaTests(unittest.TestCase):
+    def test_unverified_sample_countdown_is_off_by_default(self):
+        self.assertFalse(media_library.preferences({})['countdown_enabled'])
+        self.assertTrue(media_library.preferences({'media':{'countdown_enabled':True}})['countdown_enabled'])
+
     def test_custom_file_is_copied_without_overwriting_original(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);original=root/'my-art.png';Image.new('RGB',(32,18),'purple').save(original)

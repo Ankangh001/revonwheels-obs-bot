@@ -1,7 +1,7 @@
 """In-app prerequisite guide. Completion is user-reported, not device proof."""
 STEPS=[
     ('Install OBS Studio','Your capture and broadcast engine',
-     '1. Download the official OBS Windows installer below.\n2. Open it and finish the Windows installation prompts.\n3. Open OBS once and keep it running.\n\nAlready installed? You can skip the download. OBS does the broadcasting; this app prepares and controls it.',
+     '1. Download the official OBS Windows installer below.\n2. Open it and finish the Windows installation prompts.\n3. Open OBS once and keep it running.\n\nAlready installed? You can skip the download. OBS does the broadcasting; this app prepares and controls it.\n\nInstaller error 6 / files in use? Save work and fully quit apps using OBS Virtual Camera (including browser and chat background processes), then retry. Restart Windows if the file remains locked.',
      [('Download OBS','dependencies download obs'),('Open installer','dependencies install obs')]),
     ('Add Aitum Stream Suite','Horizontal and vertical, together',
      '1. Download the official Aitum installer below.\n2. Close OBS before opening the installer.\n3. Finish installation and reopen OBS.\n\nAitum supplies the extra canvas and output controls. Downloads are verified; Windows prompts still need your input.',
@@ -12,9 +12,9 @@ STEPS=[
      'In Aitum’s OBS toolbar, choose Add Canvas.\n\n• Create an extra canvas named exactly: YouTube Vertical\n• Width: 720     Height: 1280\n• Keep the main landscape canvas at 1920 × 1080.\n\nThe bot builds the scenes inside both canvases. Once the canvas exists, use Check connection below.',
      [('Check connection','doctor')]),
     ('Connect your gameplay','Choose PS5 or PC GTA',
-     'PS5: HDMI OUT → capture card HDMI IN → USB → laptop.\n\nOn PS5, disable HDCP in Settings → System → HDMI. For capture quality, set Screen and Video → Video Output → Resolution to 1080p if needed. Check the OBS picture and audio meters.\n\nPC: launch exactly one GTA game before preparing the PC setup. You can choose an HDMI card in Setup tools if detection is ambiguous.',[]),
+     'PS5: HDMI OUT → capture card HDMI IN → USB → laptop.\n\nOn PS5, disable HDCP in Settings → System → HDMI. For capture quality, set Screen and Video → Video Output → Resolution to 1080p if needed. Check the OBS picture and audio meters. If Windows picked the capture card as the default microphone, choose your real microphone explicitly or mute Mic/Aux to avoid doubled game sound.\n\nPC: launch exactly one GTA game before preparing the PC setup. You can choose an HDMI card in Setup tools if detection is ambiguous.',[]),
     ('Choose your look','Included theme or your own media',
-     'Open Artwork & music.\n\n• Keep the included RevOnWheels theme, or choose your own images.\n• Add landscape and portrait Starting Soon artwork, a break image, and optional banner music.\n• Unset custom slots use the included asset.\n• Turn music and the optional sample countdown on or off.\n\nSelections are copied locally. Stop outputs before applying changes to OBS.',[]),
+     'Open Artwork & music.\n\n• Keep the included RevOnWheels theme, or choose your own images.\n• Add landscape and portrait Starting Soon artwork, a break image, and optional banner music.\n• Unset custom slots use the included asset.\n• Turn music on or off. The sample countdown is off by default; edit its date and verify the announcement before enabling it.\n\nSelections are copied locally. Stop outputs before applying changes to OBS.',[]),
     ('Prepare and verify','Build scenes automatically',
      'Stop all OBS and Aitum outputs, including recordings and replay buffers. Then choose your setup below.\n\nThe bot creates eight scenes, capture sources, audio and supported PS5 quality. Camera stays off. A new microphone starts muted.\n\nSwitch to Gameplay and verify video and sound in OBS. A device name alone does not prove a working signal.',
      [('Prepare PS5','setup auto ps5'),('Prepare PC GTA','setup auto pc'),('Validate scenes','setup check')]),

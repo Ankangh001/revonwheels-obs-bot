@@ -11,7 +11,7 @@ LABELS={'landscape':'Starting Soon · landscape','portrait':'Starting Soon · po
 def preferences(config):
     media=config.get('media',{})
     return {'mode':media.get('mode','included'),'files':dict(media.get('files',{})),
-            'music_enabled':media.get('music_enabled',True),'countdown_enabled':media.get('countdown_enabled',True)}
+            'music_enabled':media.get('music_enabled',True),'countdown_enabled':media.get('countdown_enabled',False)}
 
 def resolve(config,defaults):
     media=preferences(config)

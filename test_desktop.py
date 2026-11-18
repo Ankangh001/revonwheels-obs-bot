@@ -7,6 +7,14 @@ from unittest.mock import patch
 import desktop
 
 class DesktopTests(unittest.TestCase):
+    def test_open_obs_does_not_launch_duplicate(self):
+        from types import SimpleNamespace
+        with patch.object(desktop.Path,'exists',return_value=True), patch.object(desktop.subprocess,'run',return_value=SimpleNamespace(returncode=0,stdout='"obs64.exe","123","Console","1","10 K"')), patch.object(desktop.subprocess,'Popen') as launch:
+            self.assertIn('already running',desktop.open_obs());launch.assert_not_called()
+    def test_open_obs_launches_when_not_running(self):
+        from types import SimpleNamespace
+        with patch.object(desktop.Path,'exists',return_value=True), patch.object(desktop.subprocess,'run',return_value=SimpleNamespace(returncode=0,stdout='INFO: No tasks are running')), patch.object(desktop.subprocess,'Popen') as launch:
+            self.assertIn('launch requested',desktop.open_obs());launch.assert_called_once()
     def test_status_uses_all_activity_fields(self):
         raw=json.dumps({'main_stream_active':True,'scene':'Gameplay','vertical_scene':None,'outputs':[{'name':'Kick','streaming':True},{'name':'Twitch','active':False}]})
         status=desktop.status_summary(raw)

@@ -10,6 +10,8 @@ import time
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import webbrowser
+import csv
+import io
 from bot import execute, CONFIG
 from runtime_paths import ROOT
 from PIL import Image, ImageTk, ImageOps
@@ -28,6 +30,11 @@ def open_obs():
     candidates=[Path(os.environ.get('ProgramFiles','C:/Program Files'))/'obs-studio/bin/64bit/obs64.exe',Path(os.environ.get('ProgramFiles(x86)','C:/Program Files (x86)'))/'obs-studio/bin/64bit/obs64.exe']
     path=next((p for p in candidates if p.exists()),None)
     if not path:raise RuntimeError('OBS was not found. Use Setup to download the official installer.')
+    if os.name=='nt':
+        result=subprocess.run(['tasklist','/FI','IMAGENAME eq obs64.exe','/FO','CSV','/NH'],capture_output=True,text=True,timeout=5,creationflags=subprocess.CREATE_NO_WINDOW)
+        if result.returncode!=0:raise RuntimeError('Could not check OBS activity. Open OBS manually, then click Check connection.')
+        if any(row and row[0].casefold()=='obs64.exe' for row in csv.reader(io.StringIO(result.stdout))):
+            return 'OBS is already running. Restore it from the taskbar if needed, then click Check connection.'
     subprocess.Popen([str(path)],cwd=str(path.parent))
     return 'OBS launch requested. Complete any startup prompt, then click Check connection.'
 
@@ -162,6 +169,7 @@ class App(tk.Tk):
         scroll=ttk.Scrollbar(history);scroll.pack(side='right',fill='y')
         self.log=tk.Text(history,bg=PANEL,fg=FG,insertbackground=FG,relief='flat',wrap='word',font=('Consolas',10),padx=14,pady=14,yscrollcommand=scroll.set,state='disabled');self.log.pack(fill='both',expand=True);scroll.config(command=self.log.yview)
         self.label(outer,variable=self.message,style='Muted.TLabel',wraplength=1000).pack(anchor='w',pady=(12,0))
+        if not (ROOT/'config.json').exists():notebook.select(guide)
 
     def draw_hero(self,event):
         width=event.width

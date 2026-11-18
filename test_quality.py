@@ -16,6 +16,15 @@ class QualityTests(unittest.TestCase):
         self.assertEqual(self.o.settings[PS5_INPUT]['frame_interval'],166666)
         self.assertEqual(self.o.settings[PS5_INPUT]['audio_output_mode'],0)
         self.assertFalse(any(k.startswith('Start') for k,d in self.o.calls))
+    def test_prefers_advertised_mjpeg_for_usb_capture(self):
+        original=self.o.call
+        def formats(k,**d):
+            if k=='GetInputPropertiesListPropertyItems' and d['propertyName']=='video_format':
+                return {'propertyItems':[{'itemName':'YUY2','itemValue':301},{'itemName':'MJPEG','itemValue':400}]}
+            return original(k,**d)
+        self.o.call=formats;self.ready()
+        self.assertEqual(self.o.settings[PS5_INPUT]['video_format'],400)
+        self.assertEqual(self.s.manifest['quality']['video_format'],'MJPEG')
     def test_1080p30_fallback(self):
         self.o.intervals=[333333]
         self.ready()
