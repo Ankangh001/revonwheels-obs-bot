@@ -2,6 +2,35 @@
 
 A local Windows command bot that prepares and controls landscape and portrait OBS scenes for PC GTA gameplay or a PS5 HDMI capture card. Python standard library only; no API subscription is required.
 
+## Windows desktop app
+
+The desktop preview is **RevOnWheels.exe**. Download it from this repository's Releases page and double-click it. The executable bundles Python, Tk and the media pack; users do not need a separate Python installation. OBS and Aitum remain separate requirements. This preview is unsigned and has not been tested on a clean Windows VM or certified for general public distribution.
+
+The app has three tabs:
+
+- **Stream controls:** Starting Soon, Gameplay, BRB, Safe Screen/resume, microphone/camera controls, quality selection, replay highlights and Go Live/Stop buttons. Go Live asks for a choice before requesting the configured outputs. Launching or closing the app does not start/stop streams.
+- **First-time setup:** official dependency download/install buttons, the remaining manual WebSocket/canvas steps, PS5/PC setup, device selection and setup validation. It does not auto-install software or change console settings.
+- **Activity:** command results and errors. Connection/output/scene cards refresh approximately every six seconds. They report encoder activity, not guaranteed public platform reception. There are no live audio meters or embedded video preview in this version; check OBS for those.
+
+Packaged-app settings, downloads, assets, backups and safe-state live in `%LOCALAPPDATA%/RevOnWheels`. They persist across launches and are not bundled into the executable. Existing files are preserved on subsequent launches; new bundled media is copied only when absent. To carry over an existing bot setup, use **First-time setup > Import existing bot** and choose its folder. This copies local config/ownership/safe-state files and backs up the app's current copies. Do this against the same OBS collection and use one controller at a time; the source CLI and packaged app keep separate local state folders. Local import and OBS status/setup validation passed in the actual executable.
+
+To run the graphical app from source (Python required):
+
+```powershell
+python desktop.py
+```
+
+Or double-click `Start App.cmd`. The original `Start Bot.cmd` remains available for terminal commands.
+
+To build your own Windows x64 executable with Python 3.12:
+
+```powershell
+python -m pip install -r requirements-build.txt
+python build_app.py
+```
+
+The result is `dist/RevOnWheels.exe`. Build on Windows. Build tools and generated binaries are ignored by Git; attach the executable to a GitHub Release for distribution. Code signing and an installer are separate distribution steps, not included in this portable preview.
+
 ## What it does
 
 - Builds eight scenes: Starting Soon, Gameplay, Be Right Back and Safe Screen in both formats.
@@ -171,7 +200,7 @@ Git ignores `config.json`, device IDs, ownership/safe-state manifests, backups, 
 python -m unittest -v
 ```
 
-39 tests cover authenticated WebSocket framing, scene/canvas routing, zero-source mock construction, repeat builds, device ambiguity, safe-screen behaviour, official-download selection, quality fallback and rollback. These mocks cannot prove a working PS5 HDMI signal or public platform reception.
+44 tests cover authenticated WebSocket framing, scene/canvas routing, zero-source mock construction, repeat builds, device ambiguity, safe-screen behaviour, official-download selection, quality fallback/rollback, desktop status, local import and the Go Live confirmation choice. These mocks cannot prove a working PS5 HDMI signal or public platform reception. The standalone executable was also launched on the development machine, connected to OBS, imported existing settings, and verified all eight scenes without starting a broadcast.
 
 Live validation on 18 November 2026: backed up the existing collection, cleared both canvas scene lists and all inputs, verified zero remaining inputs and scene items, then ran `setup auto ps5`. The bot rebuilt all eight scenes from scratch. Landscape/portrait artwork, countdown and safety cards were visually checked; `safe`, `resume` and `prepare` passed. All stream outputs remained stopped, and absent capture hardware was correctly reported as pending. This proves the empty-scene/source workflow with an existing Aitum canvas and configured OBS; a fresh installation and real HDMI signal remain unverified. Back up your own collection before attempting a destructive reset.
 

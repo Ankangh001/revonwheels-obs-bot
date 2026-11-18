@@ -7,7 +7,7 @@ import sys
 import time
 from obs_client import OBS, ObsError
 
-ROOT = Path(__file__).resolve().parent
+from runtime_paths import ROOT
 CONFIG = json.loads((ROOT/('config.json' if (ROOT/'config.json').exists() else 'config.example.json')).read_text())
 STATE = ROOT/'safe-state.json'
 ALIASES = {'starting soon':'prepare','prepare stream':'prepare','prepare gta':'prepare','prepare gta 6':'prepare',

@@ -5,7 +5,7 @@ from pathlib import Path
 import time
 from obs_client import ObsError
 
-ROOT=Path(__file__).resolve().parent
+from runtime_paths import ROOT
 ASSETS=Path.home()/'Pictures'/'Streaming Assets'
 FILES={
     'landscape':ASSETS/'gta-one-last-ride-landscape-v1.png',

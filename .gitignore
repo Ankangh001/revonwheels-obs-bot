@@ -14,3 +14,7 @@ preview-*.png
 .env
 .env.*
 *.log
+.build-tools/
+build/
+dist/
+*.spec

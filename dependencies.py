@@ -7,7 +7,7 @@ import re
 import urllib.parse
 import urllib.request
 
-ROOT=Path(__file__).resolve().parent
+from runtime_paths import ROOT
 PACKAGES={
     'aitum':('Aitum/obs-aitum-stream-suite',lambda n:n=='aitum-stream-suite-windows-installer.exe'),
     'obs':('obsproject/obs-studio',lambda n:bool(re.fullmatch(r'OBS-Studio-.*-Windows-x64-Installer\.exe',n,re.I))),
