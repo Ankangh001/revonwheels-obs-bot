@@ -165,6 +165,8 @@ Git ignores `config.json`, device IDs, ownership/safe-state manifests, backups, 
 python -m unittest -v
 ```
 
-32 tests cover authenticated WebSocket framing, scene/canvas routing, zero-source mock construction, repeat builds, device ambiguity, safe-screen behaviour and official-download selection. These mocks cannot prove a working PS5 HDMI signal or public platform reception. Live automatic setup passed on the existing collection, with the capture card still pending. A complete live fresh-install/empty-collection build has not passed end-to-end validation.
+32 tests cover authenticated WebSocket framing, scene/canvas routing, zero-source mock construction, repeat builds, device ambiguity, safe-screen behaviour and official-download selection. These mocks cannot prove a working PS5 HDMI signal or public platform reception.
+
+Live validation on 18 November 2026: backed up the existing collection, cleared both canvas scene lists and all inputs, verified zero remaining inputs and scene items, then ran `setup auto ps5`. The bot rebuilt all eight scenes from scratch. Landscape/portrait artwork, countdown and safety cards were visually checked; `safe`, `resume` and `prepare` passed. All stream outputs remained stopped, and absent capture hardware was correctly reported as pending. This proves the empty-scene/source workflow with an existing Aitum canvas and configured OBS; a fresh installation and real HDMI signal remain unverified. Back up your own collection before attempting a destructive reset.
 
 Protocol references: [OBS WebSocket](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md), [Aitum vendor API](https://github.com/Aitum/obs-aitum-stream-suite/blob/main/src/utils/obs-websocket.cpp).
