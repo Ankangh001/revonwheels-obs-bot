@@ -14,10 +14,13 @@ class SetupOBS:
         self.settings={};self.active=False;self.plugin_active=False;self.next_id=1
         self.device_list=[{'itemName':'HP Wide Vision HD Camera','itemValue':'webcam','itemEnabled':True},{'itemName':'UGREEN Capture','itemValue':'capture','itemEnabled':True}]
         self.owned_active=False
+        self.video={'baseWidth':1920,'baseHeight':1080,'outputWidth':1280,'outputHeight':720,'fpsNumerator':60,'fpsDenominator':1}
+        self.resolutions=['1920x1080','1280x720'];self.intervals=[166666,333333]
     def key(self,d):return (d.get('canvasUuid','main'),d.get('sceneName'))
     def call(self,k,**d):
         self.calls.append((k,copy.deepcopy(d)))
-        if k=='GetVideoSettings':return {'baseWidth':1920,'baseHeight':1080,'outputWidth':1280,'outputHeight':720}
+        if k=='GetVideoSettings':return copy.deepcopy(self.video)
+        if k=='SetVideoSettings':self.video.update(d);return {}
         if k=='GetInputList':return {'inputs':list(self.inputs.values())}
         if k=='GetSpecialInputs':return {}
         if k=='GetStreamStatus':return {'outputActive':self.active}
@@ -37,12 +40,19 @@ class SetupOBS:
             self.scenes[self.key(d)].append(item);return {'sceneItemId':item['sceneItemId'],'inputUuid':self.inputs[n].get('inputUuid')}
         if k=='SetInputSettings':
             n=d.get('inputName') or next(x for x,v in self.inputs.items() if v.get('inputUuid')==d['inputUuid'])
+            if not d.get('overlay',False):self.settings[n]={}
             self.settings[n].update(d['inputSettings']);return {}
+        if k=='GetInputSettings':
+            n=d.get('inputName') or next(x for x,v in self.inputs.items() if v.get('inputUuid')==d['inputUuid'])
+            return {'inputSettings':copy.deepcopy(self.settings[n])}
         if k=='GetSourceActive':return {'videoActive':self.owned_active,'audioActive':False}
         if k=='SetSceneItemEnabled':
             for x in self.scenes[self.key(d)]:
                 if x['sceneItemId']==d['sceneItemId']:x['sceneItemEnabled']=d['sceneItemEnabled']
-        if k=='GetInputPropertiesListPropertyItems':return {'propertyItems':copy.deepcopy(self.device_list)}
+        if k=='GetInputPropertiesListPropertyItems':
+            if d['propertyName']=='resolution':return {'propertyItems':[{'itemValue':r,'itemEnabled':True} for r in self.resolutions]}
+            if d['propertyName']=='frame_interval':return {'propertyItems':[{'itemValue':i,'itemEnabled':True} for i in self.intervals]}
+            return {'propertyItems':copy.deepcopy(self.device_list)}
         return {}
     def vendor(self,k,**d):
         self.calls.append((k,copy.deepcopy(d)))

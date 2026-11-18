@@ -29,6 +29,7 @@ HELP = '''COMMANDS
   setup rollback  Restore original bot scene routing (delete nothing)
   devices         List connected video devices
   capture ps5 N   Select capture device number N from the devices list
+  quality auto    Choose supported PS5 capture quality and match OBS output
   status          Read current OBS connection and outputs
   prepare         Starting Soon on BOTH layouts; hide webcam
   gameplay        Gameplay on BOTH layouts
@@ -102,12 +103,15 @@ class Controller:
         return hidden,unavailable
 
     def run(self, command):
-        if command.startswith('setup') or command=='devices' or command.startswith('capture ps5 '):
+        if command.startswith('setup') or command in ('devices','quality auto') or command.startswith('capture ps5 '):
             from setup_obs import Setup
             s=Setup(self.o,self.c)
             if self.state_path.exists() and command not in ('setup plan','setup check','devices'):
                 raise ObsError('Safe Screen is latched. Resume before changing the setup.')
             if command=='setup plan':return s.plan()
+            if command=='quality auto':
+                from quality import automatic
+                return automatic(s)
             if command in ('setup auto pc','setup auto ps5'):return s.automatic(command.split()[-1])
             if command=='setup stage':return s.build('ps5',stage=True)
             if command in ('setup','setup ps5'):return s.build('ps5')
@@ -203,7 +207,7 @@ def execute(command):
         from dependencies import run
         return run(command)
     if command=='links':return '\n'.join(f'{k}: {v}' for k,v in CONFIG['links'].items())
-    if command not in {'setup auto pc','setup auto ps5'}|set(CONFIG['scenes'])|{'status','camera off','mic on','mic off','safe','resume','live all','live youtube','stop','highlight','doctor','setup','setup plan','setup stage','setup pc','setup ps5','setup activate','setup check','setup rollback','devices'} and not command.startswith('capture ps5 '):
+    if command not in {'setup auto pc','setup auto ps5','quality auto'}|set(CONFIG['scenes'])|{'status','camera off','mic on','mic off','safe','resume','live all','live youtube','stop','highlight','doctor','setup','setup plan','setup stage','setup pc','setup ps5','setup activate','setup check','setup rollback','devices'} and not command.startswith('capture ps5 '):
         raise ObsError('Unknown command. Type help.')
     o=connection()
     try:return Controller(o).run(command)

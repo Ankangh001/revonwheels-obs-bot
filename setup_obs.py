@@ -338,7 +338,7 @@ class Setup:
         d=matched[0]
         if any(x in d['itemName'].lower() for x in ('webcam','wide vision','integrated camera','facetime','virtual camera')):raise ObsError('That looks like a webcam or virtual camera. Select the HDMI capture card.')
         ref=self.ref(SCENES['gameplay'][0])
-        self.input(ref,PS5_INPUT,'dshow_input',{'video_device_id':d['itemValue'],'active':True,'audio_output_mode':0,'res_type':0,'use_custom_audio_device':False})
+        self.input(ref,PS5_INPUT,'dshow_input',{'video_device_id':d['itemValue'],'active':True,'audio_output_mode':0,'use_custom_audio_device':False})
         for vertical in (False,True):
             ref=self.ref(SCENES['gameplay'][int(vertical)],vertical)
             item=self.item(ref,PS5_INPUT)
@@ -350,7 +350,9 @@ class Setup:
         if PS5_INPUT not in self.config['mute_on_safe']:
             self.config['mute_on_safe'].append(PS5_INPUT)
             (self.root/'config.json').write_text(json.dumps(self.config,indent=2))
-        return 'Capture card selected: '+d['itemName']+'. HDMI audio capture requested. Preview video and audio meters before going live; signal quality is not yet verified.'
+        from quality import automatic
+        quality=automatic(self)
+        return 'Capture card selected: '+d['itemName']+'. HDMI audio capture requested.\n'+quality
 
     def rollback(self):
         self.offline_only()

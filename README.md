@@ -8,6 +8,7 @@ A local Windows command bot that prepares and controls landscape and portrait OB
 - Adds bundled artwork, banner music and a local browser countdown.
 - Fits landscape gameplay and uses a centre crop for portrait.
 - Detects a unique recognised HDMI capture card or running GTA game window.
+- Automatically selects an advertised PS5 capture mode up to 1080p60 and matches the main OBS output resolution/frame rate. It falls back to a supported 1080p or 720p mode at 30–60 fps. It backs up the prior settings and restores them if selection or readback fails. Portrait resolution, audio, colour interpretation and encoder bitrate remain unchanged.
 - Creates game audio and a microphone when needed, reusing existing global audio to avoid doubled sound. A newly created microphone starts muted.
 - Keeps the webcam off and supports manual scene changes, Safe Screen, microphone control, stream start/stop and replay highlights.
 - Downloads the official OBS or Aitum Windows installer and checks the SHA-256 digest published with its GitHub release.
@@ -106,6 +107,7 @@ Only bot-owned `ROW - ...` scenes and sources are repaired. Unmanaged name colli
 | `setup ps5`, `setup pc`, `setup stage` | Build/repair or stage layouts |
 | `setup activate`, `setup rollback` | Select managed setup or restore saved routing |
 | `devices`, `capture ps5 N` | Enumerate capture devices and choose a card |
+| `quality auto` | Choose supported PS5 capture quality and match main OBS output; outputs must be stopped |
 | `prepare`, `gameplay`, `brb` | Switch both formats |
 | `safe`, `resume` | Cover/mute, or restore saved scenes/mutes |
 | `camera off`, `mic on`, `mic off` | Camera visibility and microphone mute |
@@ -121,6 +123,10 @@ Only bot-owned `ROW - ...` scenes and sources are repaired. Unmanaged name colli
 Single commands also work from a terminal: `python bot.py setup auto ps5`.
 
 ## Before broadcasting
+
+`setup auto ps5` and `capture ps5 N` now include automatic quality selection. For an already configured card, run `quality auto`. The command targets 1920x1080 first, then 1280x720, with the highest enabled advertised frame rate between 30 and 60 fps. OBS's Auto video format negotiates with the driver. It will not force an unsupported 4K mode or overwrite colour/audio settings. A smaller-than-selected base canvas is rejected so existing layouts are not silently moved.
+
+Live verification with UGREEN 25773: capture requested at 1920x1080/60, main OBS output changed from 1280x720/60 to 1920x1080/60, and settings readback passed. This does not prove USB stability, effective delivered frame rate or Internet streaming quality. Preview and check sound; choose platform bitrates for your connection separately. This bot cannot remotely change PS5 resolution or HDCP: use the console's Settings > Screen and Video > Video Output > Resolution > 1080p if necessary. Reopen the bot after code updates to load new commands.
 
 Connect your platform accounts or paste stream keys directly into OBS/Aitum. Do not put keys in this repository or chat. Match your output names to the `outputs` array in local config. Main OBS streaming must target YouTube for `live youtube` to mean YouTube; the bot uses existing settings and does not reconfigure services.
 
@@ -165,7 +171,7 @@ Git ignores `config.json`, device IDs, ownership/safe-state manifests, backups, 
 python -m unittest -v
 ```
 
-32 tests cover authenticated WebSocket framing, scene/canvas routing, zero-source mock construction, repeat builds, device ambiguity, safe-screen behaviour and official-download selection. These mocks cannot prove a working PS5 HDMI signal or public platform reception.
+39 tests cover authenticated WebSocket framing, scene/canvas routing, zero-source mock construction, repeat builds, device ambiguity, safe-screen behaviour, official-download selection, quality fallback and rollback. These mocks cannot prove a working PS5 HDMI signal or public platform reception.
 
 Live validation on 18 November 2026: backed up the existing collection, cleared both canvas scene lists and all inputs, verified zero remaining inputs and scene items, then ran `setup auto ps5`. The bot rebuilt all eight scenes from scratch. Landscape/portrait artwork, countdown and safety cards were visually checked; `safe`, `resume` and `prepare` passed. All stream outputs remained stopped, and absent capture hardware was correctly reported as pending. This proves the empty-scene/source workflow with an existing Aitum canvas and configured OBS; a fresh installation and real HDMI signal remain unverified. Back up your own collection before attempting a destructive reset.
 
