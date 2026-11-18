@@ -1,15 +1,17 @@
 # RevOnWheels OBS Bot
 
-A local Windows command bot that prepares and controls landscape and portrait OBS scenes for PC GTA gameplay or a PS5 HDMI capture card. Python standard library only; no API subscription is required.
+A local Windows app and command bot that prepare and control landscape and portrait OBS scenes for PC GTA gameplay or a PS5 HDMI capture card. The terminal controller uses Python's standard library; desktop image rendering uses Pillow. No API subscription is required.
 
 ## Windows desktop app
 
 The desktop preview is **RevOnWheels.exe**. Download it from this repository's Releases page and double-click it. The executable bundles Python, Tk and the media pack; users do not need a separate Python installation. OBS and Aitum remain separate requirements. This preview is unsigned and has not been tested on a clean Windows VM or certified for general public distribution.
 
-The app has three tabs:
+The app has five tabs, with a neon pink/cyan/plum sunset theme, an original tropical background and a generated RevOnWheels logo:
 
 - **Stream controls:** Starting Soon, Gameplay, BRB, Safe Screen/resume, microphone/camera controls, quality selection, replay highlights and Go Live/Stop buttons. Go Live asks for a choice before requesting the configured outputs. Launching or closing the app does not start/stop streams.
-- **First-time setup:** official dependency download/install buttons, the remaining manual WebSocket/canvas steps, PS5/PC setup, device selection and setup validation. It does not auto-install software or change console settings.
+- **Prerequisite guide:** eight steps from OBS installation through platform checks. Select steps on the left, read the instructions, use the relevant action buttons, and mark completion. Progress stays local and is user-reported, not proof of readiness.
+- **Artwork & music:** choose the included theme or select your own local banner images/music, preview artwork, switch banner music/countdown on or off, and apply changes with outputs stopped. See media details below.
+- **Setup tools:** official dependency download/install buttons, PS5/PC setup, device selection and setup validation. It does not auto-install software or change console settings.
 - **Activity:** command results and errors. Connection/output/scene cards refresh approximately every six seconds. They report encoder activity, not guaranteed public platform reception. There are no live audio meters or embedded video preview in this version; check OBS for those.
 
 Packaged-app settings, downloads, assets, backups and safe-state live in `%LOCALAPPDATA%/RevOnWheels`. They persist across launches and are not bundled into the executable. Existing files are preserved on subsequent launches; new bundled media is copied only when absent. To carry over an existing bot setup, use **First-time setup > Import existing bot** and choose its folder. This copies local config/ownership/safe-state files and backs up the app's current copies. Do this against the same OBS collection and use one controller at a time; the source CLI and packaged app keep separate local state folders. Local import and OBS status/setup validation passed in the actual executable.
@@ -17,6 +19,7 @@ Packaged-app settings, downloads, assets, backups and safe-state live in `%LOCAL
 To run the graphical app from source (Python required):
 
 ```powershell
+python -m pip install -r requirements-desktop.txt
 python desktop.py
 ```
 
@@ -165,6 +168,12 @@ Set your own channel links in local config; the example deliberately has none. E
 
 ## Artwork, countdown and music
 
+The **Artwork & music** tab offers **Included theme** and **My images & music**. Choose a landscape Starting Soon image, portrait Starting Soon image, a shared break/safe background and optional banner music. Images support PNG/JPG/JPEG/WebP; music supports WAV/MP3/OGG/FLAC/M4A. Image contents are checked; audio playback must still be checked in OBS. Selecting files copies them to the local `custom-media` folder with unique names; originals are untouched and nothing is uploaded. Slots without a custom file use the bundled asset. Reset restores a slot to its included asset without deleting your original or copied file.
+
+Selections save immediately, but **Apply media to OBS** updates the existing managed scenes only after all outputs stop. Alternatively, your next automatic setup uses the choices. Stop streams, recordings/replay buffers and virtual camera first. Turning banner music/countdown off disables their existing scene items in both layouts; turning them back on re-enables them. Media application preserves the current scene selection and capture settings.
+
+The app's header/logo are bundled brand graphics, separate from the stream banner choices. Files: `assets/revonwheels-logo.png` (transparent channel logo) and `assets/vice-sunset-background.png` (original GTA VI-inspired coastal artwork, not official Rockstar key art). Full generation prompts are in `assets/ASSET-PROMPTS.md`. The app icon uses the same logo. Imported custom media and tutorial progress are excluded from Git.
+
 The assets are the existing RevOnWheels stream pack. Replace the three images and WAV with your own assets if desired, keeping filenames or updating `FILES` in `setup_obs.py`. Ensure you have permission to use any replacement media. The images are not an official Rockstar product or endorsement.
 
 **The bundled countdown date is a sample copied from the existing setup, not a verified GTA VI launch time.** Edit `assets/gta-vi-countdown.html` before going live: change both `target` in the script and the visible note. It does not check release announcements. Never present its date as an official release promise.
@@ -200,7 +209,7 @@ Git ignores `config.json`, device IDs, ownership/safe-state manifests, backups, 
 python -m unittest -v
 ```
 
-44 tests cover authenticated WebSocket framing, scene/canvas routing, zero-source mock construction, repeat builds, device ambiguity, safe-screen behaviour, official-download selection, quality fallback/rollback, desktop status, local import and the Go Live confirmation choice. These mocks cannot prove a working PS5 HDMI signal or public platform reception. The standalone executable was also launched on the development machine, connected to OBS, imported existing settings, and verified all eight scenes without starting a broadcast.
+53 tests cover authenticated WebSocket framing, scene/canvas routing, zero-source mock construction, repeat builds, device ambiguity, safe-screen behaviour, official-download selection, quality fallback/rollback, desktop status, local import, Go Live confirmation, custom media copying/validation and disabling/re-enabling media in both formats. These mocks cannot prove a working PS5 HDMI signal or public platform reception. The standalone executable was also launched on the development machine, connected to OBS, imported existing settings, and verified all eight scenes without starting a broadcast.
 
 Live validation on 18 November 2026: backed up the existing collection, cleared both canvas scene lists and all inputs, verified zero remaining inputs and scene items, then ran `setup auto ps5`. The bot rebuilt all eight scenes from scratch. Landscape/portrait artwork, countdown and safety cards were visually checked; `safe`, `resume` and `prepare` passed. All stream outputs remained stopped, and absent capture hardware was correctly reported as pending. This proves the empty-scene/source workflow with an existing Aitum canvas and configured OBS; a fresh installation and real HDMI signal remain unverified. Back up your own collection before attempting a destructive reset.
 

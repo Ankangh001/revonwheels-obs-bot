@@ -10,7 +10,7 @@ def main():
     local=root/'.build-tools'
     if local.exists():env['PYTHONPATH']=str(local)+os.pathsep+env.get('PYTHONPATH','')
     subprocess.run([sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onefile','--windowed',
-                    '--name','RevOnWheels','--add-data','config.example.json;.','--add-data','assets;assets',
+                    '--name','RevOnWheels','--icon','assets/revonwheels-logo.png','--add-data','config.example.json;.','--add-data','assets;assets',
                     '--hidden-import','setup_obs','--hidden-import','quality','--hidden-import','dependencies',
                     'desktop.py'],cwd=root,env=env,check=True)
     print('Built:',root/'dist/RevOnWheels.exe')

@@ -1,0 +1,23 @@
+"""In-app prerequisite guide. Completion is user-reported, not device proof."""
+STEPS=[
+    ('Install OBS Studio','Your capture and broadcast engine',
+     '1. Download the official OBS Windows installer below.\n2. Open it and finish the Windows installation prompts.\n3. Open OBS once and keep it running.\n\nAlready installed? You can skip the download. OBS does the broadcasting; this app prepares and controls it.',
+     [('Download OBS','dependencies download obs'),('Open installer','dependencies install obs')]),
+    ('Add Aitum Stream Suite','Horizontal and vertical, together',
+     '1. Download the official Aitum installer below.\n2. Close OBS before opening the installer.\n3. Finish installation and reopen OBS.\n\nAitum supplies the extra canvas and output controls. Downloads are verified; Windows prompts still need your input.',
+     [('Download Aitum','dependencies download aitum'),('Open installer','dependencies install aitum')]),
+    ('Enable local control','Connect the app to OBS',
+     'In OBS: Tools → WebSocket Server Settings.\n\n• Enable WebSocket server and keep authentication enabled.\n• Click Apply, then OK.\n• Keep your password in OBS; do not paste it in this app.\n\nOBS already includes WebSocket. No old standalone WebSocket plugin is needed. The app reads the existing local configuration.',[]),
+    ('Create the portrait canvas','One-time canvas setup',
+     'In Aitum’s OBS toolbar, choose Add Canvas.\n\n• Create an extra canvas named exactly: YouTube Vertical\n• Width: 720     Height: 1280\n• Keep the main landscape canvas at 1920 × 1080.\n\nThe bot builds the scenes inside both canvases. Once the canvas exists, use Check connection below.',
+     [('Check connection','doctor')]),
+    ('Connect your gameplay','Choose PS5 or PC GTA',
+     'PS5: HDMI OUT → capture card HDMI IN → USB → laptop.\n\nOn PS5, disable HDCP in Settings → System → HDMI. For capture quality, set Screen and Video → Video Output → Resolution to 1080p if needed. Check the OBS picture and audio meters.\n\nPC: launch exactly one GTA game before preparing the PC setup. You can choose an HDMI card in Setup tools if detection is ambiguous.',[]),
+    ('Choose your look','Included theme or your own media',
+     'Open Artwork & music.\n\n• Keep the included RevOnWheels theme, or choose your own images.\n• Add landscape and portrait Starting Soon artwork, a break image, and optional banner music.\n• Unset custom slots use the included asset.\n• Turn music and the optional sample countdown on or off.\n\nSelections are copied locally. Stop outputs before applying changes to OBS.',[]),
+    ('Prepare and verify','Build scenes automatically',
+     'Stop all OBS and Aitum outputs, including recordings and replay buffers. Then choose your setup below.\n\nThe bot creates eight scenes, capture sources, audio and supported PS5 quality. Camera stays off. A new microphone starts muted.\n\nSwitch to Gameplay and verify video and sound in OBS. A device name alone does not prove a working signal.',
+     [('Prepare PS5','setup auto ps5'),('Prepare PC GTA','setup auto pc'),('Validate scenes','setup check')]),
+    ('Connect your platforms','Final checks before Go Live',
+     'Connect YouTube in OBS Settings → Stream. Configure named Twitch, Kick and YouTube Vertical outputs in Aitum as needed. Keep stream keys in OBS/Aitum.\n\nCreate/select the correct YouTube broadcast and its separate vertical encoder/key where required. Check visibility and every platform dashboard.\n\nGo Live in Stream controls starts configured encoders; it does not create platform events or guarantee public reception. Start only when picture, audio and destinations are correct.',[]),
+]

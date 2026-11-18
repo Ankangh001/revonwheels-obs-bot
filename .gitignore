@@ -18,3 +18,5 @@ preview-*.png
 build/
 dist/
 *.spec
+custom-media/
+tutorial-progress.json

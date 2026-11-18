@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import time
 from obs_client import ObsError
+from media_library import resolve, preferences
 
 from runtime_paths import ROOT
 ASSETS=Path.home()/'Pictures'/'Streaming Assets'
@@ -28,7 +29,8 @@ PC_INPUT='ROW - Game Capture'
 class Setup:
     def __init__(self,obs,config,root=ROOT,files=None):
         self.o,self.config,self.root=obs,config,Path(root)
-        self.files=files if files is not None else FILES
+        self.files=files if files is not None else resolve(config,FILES)
+        self.media=preferences(config)
         self.manifest_path=self.root/'setup-manifest.json'
         self.manifest=json.loads(self.manifest_path.read_text()) if self.manifest_path.exists() else {'scenes':[],'inputs':[],'mode':None}
         self.canvas=None;self.video=None
@@ -49,6 +51,12 @@ class Setup:
     def input_ref(self,name):
         uuid=self.inputs[name].get('inputUuid')
         return {'inputUuid':uuid} if uuid else {'inputName':name}
+
+    def missing_assets(self):
+        keys={'landscape','portrait','brb'}
+        if self.media['music_enabled']:keys.add('music')
+        if self.media['countdown_enabled']:keys.add('countdown')
+        return [str(self.files[k]) for k in sorted(keys) if not self.files[k].is_file()]
 
     def automatic(self,mode):
         """Build from zero sources, discover capture, then select the banners."""
@@ -183,7 +191,7 @@ class Setup:
 
     def plan(self):
         self.inspect()
-        missing=[str(p) for p in self.files.values() if not p.exists()]
+        missing=self.missing_assets()
         return '\n'.join([
             'SETUP PLAN (read-only)',
             f"Landscape: {self.video['baseWidth']}x{self.video['baseHeight']} canvas; {self.video['outputWidth']}x{self.video['outputHeight']} output",
@@ -216,7 +224,7 @@ class Setup:
                     raise ObsError('Staging cannot modify an active ROW source: '+n+'. Stop outputs before repair.')
         else:self.offline_only()
         if mode not in ('pc','ps5'):raise ObsError('Use setup pc or setup ps5.')
-        missing=[str(p) for p in self.files.values() if not p.exists()]
+        missing=self.missing_assets()
         if missing:raise ObsError('Missing setup assets: '+', '.join(missing))
         pc_capture=self.manifest.get('pc_capture','GTA V Game Capture')
         if mode=='pc' and pc_capture not in self.inputs:raise ObsError('Run setup auto pc to create the game capture source.')
@@ -251,11 +259,15 @@ class Setup:
                         'positionX':w*.07,'positionY':h*.275,'alignment':5,'boundsAlignment':0,
                         'boundsType':'OBS_BOUNDS_SCALE_INNER','boundsWidth':w*.86,'boundsHeight':h*.45})
                     self.top(ref,item)
-                music=self.input(ref,'ROW - Banner Music','ffmpeg_source',{'is_local_file':True,'local_file':str(self.files['music']),'looping':True,'restart_on_activate':False,'close_when_inactive':True})
-                self.o.call('SetInputVolume',**self.input_ref('ROW - Banner Music'),inputVolumeDb=-8.)
-                if action!='safe':
+                if self.media['music_enabled']:
+                    self.input(ref,'ROW - Banner Music','ffmpeg_source',{'is_local_file':True,'local_file':str(self.files['music']),'looping':True,'restart_on_activate':False,'close_when_inactive':True})
+                    self.o.call('SetInputVolume',**self.input_ref('ROW - Banner Music'),inputVolumeDb=-8.)
+                if action!='safe' and self.media['countdown_enabled']:
                     item=self.input(ref,f'ROW - Countdown - {suffix}','browser_source',{'is_local_file':False,'url':self.files['countdown'].resolve().as_uri(),'width':w,'height':h,'shutdown':False,'reroute_audio':False})
                     self.fit(ref,item,w,h);self.top(ref,item)
+                for old in self.o.call('GetSceneItemList',**ref)['sceneItems']:
+                    if (old['sourceName']=='ROW - Banner Music' and not self.media['music_enabled']) or (old['sourceName'].startswith('ROW - Countdown - ') and not self.media['countdown_enabled']):
+                        self.o.call('SetSceneItemEnabled',**ref,sceneItemId=old['sceneItemId'],sceneItemEnabled=False)
         self.manifest['mode']=mode;self.persist()
         report=self.check()
         return 'Setup built. Your current scenes were not switched. Run setup activate when ready.\n'+report
@@ -275,8 +287,12 @@ class Setup:
                         capture=self.manifest.get('pc_capture','GTA V Game Capture') if self.manifest.get('mode')=='pc' else (PS5_INPUT if PS5_INPUT in self.inputs else 'ROW - Capture Pending')
                         expected={capture}
                     else:
-                        expected={f'ROW - {action.title()} Art - {suffix}','ROW - Banner Music'}
-                        expected.add(f'ROW - Safety Card - {suffix}' if action=='safe' else f'ROW - Countdown - {suffix}')
+                        expected={f'ROW - {action.title()} Art - {suffix}'}
+                        if self.media['music_enabled']:expected.add('ROW - Banner Music')
+                        if action=='safe':expected.add(f'ROW - Safety Card - {suffix}')
+                        elif self.media['countdown_enabled']:expected.add(f'ROW - Countdown - {suffix}')
+                        if not self.media['music_enabled'] and 'ROW - Banner Music' in enabled:failures.append(name+' still has music enabled')
+                        if not self.media['countdown_enabled'] and any(n.startswith('ROW - Countdown - ') for n in enabled):failures.append(name+' still has countdown enabled')
                     if expected-enabled:failures.append(name+' missing/enabled sources: '+', '.join(sorted(expected-enabled)))
                     count+=1
                 except ObsError:failures.append(name+' missing')
