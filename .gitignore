@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+config.json
+config-before-setup.json
+config.tmp
+safe-state.json
+setup-manifest.json
+setup-manifest.tmp
+capture-devices.json
+backups/
+downloads/
+preview-*.png
+.env
+.env.*
+*.log

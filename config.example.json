@@ -1,0 +1,14 @@
+{
+  "canvas": "YouTube Vertical",
+  "scenes": {
+    "prepare": ["ROW - Starting Soon", "ROW - Vertical Starting Soon"],
+    "gameplay": ["ROW - Gameplay", "ROW - Vertical Gameplay"],
+    "brb": ["ROW - Be Right Back", "ROW - Vertical Be Right Back"]
+  },
+  "safe_scenes": ["ROW - Safe Screen", "ROW - Vertical Safe Screen"],
+  "mute_on_safe": ["Desktop Audio", "Mic/Aux"],
+  "microphone": "Mic/Aux",
+  "camera": "Video Capture Device",
+  "outputs": ["Twitch", "Kick", "YouTube Vertical"],
+  "links": {}
+}
